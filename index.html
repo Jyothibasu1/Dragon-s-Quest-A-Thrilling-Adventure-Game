@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon's World Game</title>
+    
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Reset default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        /* Body background with space theme */
+        body {
+            overflow: hidden;
+            background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+        }
+
+        /* Game Title */
+        #gameName {
+            position: absolute;
+            top: 15vh;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0px 0px 10px rgba(255, 204, 0, 0.8);
+        }
+
+        /* Game Container */
+        .container {
+            width: 100vw;
+            height: 100vh;
+            background-image: url("https://github.com/SAEb-ai/Dragon-s-World-Game/blob/main/images/cover.png?raw=true");
+            background-size: cover;
+            position: relative;
+        }
+
+        /* Score Counter - Glassmorphism Effect */
+        #scorecount {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            padding: 15px 30px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Dragon Character */
+        .dragon {
+            background-image: url("https://github.com/SAEb-ai/Dragon-s-World-Game/blob/main/images/dragon.png?raw=true");
+            background-size: cover;
+            width: 210px;
+            height: 150px;
+            position: absolute;
+            bottom: 10px;
+            left: 100px;
+        }
+
+        /* Dragon Jump Animation */
+        .animatedragon {
+            animation: jump 0.7s ease-in-out;
+        }
+
+        @keyframes jump {
+            0% { bottom: 10px; }
+            50% { bottom: 250px; }
+            100% { bottom: 10px; }
+        }
+
+        /* Obstacle */
+        .obstacle {
+            background-image: url("https://github.com/SAEb-ai/Dragon-s-World-Game/blob/main/images/obstacle.png?raw=true");
+            background-size: cover;
+            width: 180px;
+            height: 150px;
+            position: absolute;
+            bottom: 10px;
+            right: 120px;
+        }
+
+        /* Obstacle Movement Animation */
+        .animateobstacle {
+            animation: moveObstacle 4s linear infinite;
+        }
+
+        @keyframes moveObstacle {
+            0% { right: -10vw; }
+            100% { right: 100vw; }
+        }
+
+        /* Game Over Screen */
+        .gameover {
+            visibility: hidden;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-weight: bold;
+            color: white;
+            background: rgba(255, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 20px;
+            text-shadow: 0px 0px 20px red;
+            animation: blink 0.8s infinite alternate;
+        }
+
+        /* Game Over Blinking Effect */
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Game Title -->
+    <h1 id="gameName">Welcome to Dragon's World</h1>
+
+    <!-- Game Container -->
+    <div class="container">
+        <div class="gameover">Game Over</div>
+        <div id="scorecount">Your Score: 0</div>
+        <div class="obstacle animateobstacle"></div>
+        <div class="dragon"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let cross = true;
+
+        // Event listener for key presses
+        document.onkeydown = function (e) {
+            console.log(e.keyCode);
+            let dragon = document.querySelector('.dragon');
+
+            // If Up Arrow Key (Jump)
+            if (e.keyCode == 38) {
+                if (!dragon.classList.contains('animatedragon')) {
+                    dragon.classList.add('animatedragon');
+                    setTimeout(() => {
+                        dragon.classList.remove('animatedragon');
+                    }, 700);
+                }
+            }
+
+            // If Left Arrow Key (Move Left)
+            if (e.keyCode == 37) {
+                let dragonX = parseInt(window.getComputedStyle(dragon, null).getPropertyValue('left'));
+                if (dragonX > 0) {
+                    dragon.style.left = dragonX - 50 + "px";
+                }
+            }
+
+            // If Right Arrow Key (Move Right)
+            if (e.keyCode == 39) {
+                let dragonX = parseInt(window.getComputedStyle(dragon, null).getPropertyValue('left'));
+                if (dragonX < window.innerWidth - 210) {
+                    dragon.style.left = dragonX + 50 + "px";
+                }
+            }
+        };
+
+        // Collision Detection & Score Update
+        setInterval(() => {
+            let dragon = document.querySelector('.dragon');
+            let gameOverText = document.querySelector('.gameover');
+            let obstacle = document.querySelector('.obstacle');
+
+            let dx = parseInt(window.getComputedStyle(dragon, null).getPropertyValue('left'));
+            let dy = parseInt(window.getComputedStyle(dragon, null).getPropertyValue('bottom'));
+
+            let ox = parseInt(window.getComputedStyle(obstacle, null).getPropertyValue('left'));
+            let oy = parseInt(window.getComputedStyle(obstacle, null).getPropertyValue('bottom'));
+
+            let offsetX = Math.abs(dx - ox);
+            let offsetY = Math.abs(dy - oy);
+
+            // Collision Condition
+            if (offsetX < 120 && offsetY < 144) {
+                gameOverText.style.visibility = "visible";
+                obstacle.classList.remove('animateobstacle');
+            } else if (offsetX < 125 && cross) {
+                score += 1;
+                updateScore(score);
+                cross = false;
+
+                setTimeout(() => {
+                    cross = true;
+                }, 500);
+            }
+        }, 10);
+
+        // Function to Update Score
+        function updateScore(score) {
+            document.getElementById("scorecount").innerHTML = "Your Score: " + score;
+        }
+    </script>
+
+</body>
+</html>
